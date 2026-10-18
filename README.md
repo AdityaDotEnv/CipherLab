@@ -1,198 +1,138 @@
-# CipherLab — Classical Cipher Demonstration Tool
+# 🔐 CipherLab
 
-CipherLab is a desktop application developed in C++ using the JUCE framework for the **BIS703: Information and Network Security** course. It demonstrates three classical encryption techniques through a graphical interface, allowing users to encrypt plaintext, inspect ciphertext, decrypt results, and compare encryption execution times.
+<div align="center">
 
-## Features
+```text
+   ______ _       _               _          _
+  / _____(_)     | |             | |        | |
+ | |      _ _ __ | |__   ___ _ __| |    __ _| |__
+ | |     | | '_ \\| '_ \\ / _ \\ '__| |   / _` | '_ \\
+ | |_____| | |_) | | | |  __/ |  | |__| (_| | |_) |
+  \\______|_| .__/|_| |_|\\___|_|  |_____\\__,_|_.__/
+           | |
+           |_|
 
-- **Simple Substitution Cipher** — substitutes each plaintext letter using a user-provided substitution alphabet.
-- **Double Transposition Cipher** — rearranges plaintext characters using row and column permutations applied to a rectangular matrix.
-- **One-Time Pad (OTP)** — performs letter-based encryption using modular arithmetic and a generated key.
-- **Encryption and decryption** — supports round-trip verification for each implemented cipher.
-- **Input normalization** — converts plaintext to uppercase and removes characters outside A–Z.
-- **Execution timing** — displays encryption timing information in the GUI.
-- **Automated tests** — verifies cipher operations, normalization, key validation, and round-trip correctness.
+       CLASSICAL CIPHERS • MODERN CODE
+```
 
-## Technology Stack
+<div align="center">
+  <img src="assets/cipherlab-logo.svg" alt="CipherLab Logo" width="600">
+</div>
+
+**An interactive classical cryptography playground built with C++ and JUCE.**
+
+[![C++](https://img.shields.io/badge/C%2B%2B-17-00599C?style=for-the-badge&logo=cplusplus&logoColor=white)](https://isocpp.org/)
+[![JUCE](https://img.shields.io/badge/GUI-JUCE-8B5CF6?style=for-the-badge)](https://juce.com/)
+[![CMake](https://img.shields.io/badge/Build-CMake-064F8C?style=for-the-badge&logo=cmake&logoColor=white)](https://cmake.org/)
+[![Platform](https://img.shields.io/badge/Platform-Windows-0078D4?style=for-the-badge&logo=windows&logoColor=white)](https://www.microsoft.com/windows)
+[![Course](https://img.shields.io/badge/Course-BIS703-14B8A6?style=for-the-badge)](#)
+
+</div>
+
+---
+
+CipherLab is a desktop application developed in **C++ using the JUCE framework** for the **BIS703: Information and Network Security** course. It provides an interactive environment for exploring classical encryption techniques, comparing ciphertext outputs, decrypting messages, and observing encryption execution times.
+
+## ✨ Features
+
+- 🔤 **Simple Substitution** — encrypt messages using a configurable 26-letter substitution alphabet.
+- 🔀 **Double Transposition** — rearrange characters using row and column permutations on a rectangular matrix.
+- 🔑 **One-Time Pad (OTP)** — perform letter-based encryption and decryption using modular arithmetic.
+- 🔄 **Round-trip verification** — check whether decryption recovers the normalized plaintext.
+- ⏱️ **Execution timing** — compare the measured encryption times of the implemented algorithms.
+- 🧹 **Input normalization** — convert text to uppercase and retain only letters A–Z.
+- 🖥️ **Interactive GUI** — configure keys, inspect ciphertext, and decrypt results in one application.
+- 🧪 **Automated tests** — exercise cipher operations, validation, and round-trip behavior.
+
+## 🧰 Tech Stack
 
 | Component | Technology |
 |---|---|
-| Programming language | C++ |
+| Language | C++ |
 | GUI framework | JUCE |
 | Build system | CMake |
-| Compiler | Microsoft Visual C++ (MSVC) |
-| IDE / terminal | Visual Studio 2022 Build Tools and PowerShell |
-| Testing | C++ test executable integrated with CTest |
+| Compiler | MSVC |
+| Platform | Windows 10 / 11 |
+| Testing | C++ test executable + CTest |
 
-## Prerequisites
+## 🔐 Cipher Showcase
+
+| Cipher | Core operation | Key input |
+|---|---|---|
+| Simple Substitution | Replaces each letter using an alphabet mapping | 26-letter permutation |
+| Double Transposition | Reorders a rectangular character matrix | Row and column permutations |
+| One-Time Pad | Modular addition over the alphabet | Generated message-length key |
+
+### Double Transposition example
+
+The row and column permutations are separated by a semicolon:
+
+```text
+3,1,2;2,4,1,3
+```
+
+This example specifies a **3 × 4 matrix** and therefore requires exactly 12 normalized characters. The row and column permutations must each contain every integer from `1` to their respective lengths exactly once.
+
+CipherLab currently requires the matrix dimensions to match the normalized message length; automatic padding and automatic dimension selection are not implemented.
+
+## ⚙️ Quick Start
+
+### Requirements
 
 - Windows 10 or Windows 11
 - Git
 - CMake
 - Visual Studio 2022 Build Tools with the **Desktop development with C++** workload
-- A compatible Windows SDK
-- The JUCE submodule initialized in the project directory
-
-## Setup and Build
+- Compatible Windows SDK
 
 ### 1. Clone the repository
 
 ```powershell
-git clone <repository-url>
+git clone https://github.com/AdityaDotEnv/CipherLab.git
 cd CipherLab
 git submodule update --init --recursive
 ```
 
-Replace `<repository-url>` with the actual Git repository URL.
-
-If the project is already present locally and the JUCE directory is populated, skip the cloning step.
-
-### 2. Configure the project
-
-Open a PowerShell terminal with the Visual Studio C++ build environment available, navigate to the project directory, and run:
+### 2. Configure and build
 
 ```powershell
 cmake -S . -B build -G "Visual Studio 17 2022" -A x64
-```
-
-### 3. Build the application
-
-```powershell
 cmake --build build --config Debug
 ```
 
-### 4. Launch CipherLab
+### 3. Launch the application
 
 ```powershell
 .\build\CipherLab_artefacts\Debug\CipherLab.exe
 ```
 
-### 5. Run the automated tests
+### 4. Run tests
 
 ```powershell
 ctest --test-dir build -C Debug --output-on-failure
 ```
 
-Alternatively, run the test executable directly:
+## 🧪 Testing
 
-```powershell
-.\build\Debug\CipherLabTests.exe
-```
+The test suite is designed to cover:
 
-## Implemented Algorithms
-
-### 1. Simple Substitution Cipher
-
-Each plaintext letter is mapped to a corresponding ciphertext letter according to a substitution alphabet.
-
-A valid substitution alphabet must contain all 26 letters of the English alphabet exactly once. Decryption uses the inverse mapping to recover the normalized plaintext.
-
-**Purpose:** Demonstrates monoalphabetic substitution and reversible character mapping.
-
-### 2. Double Transposition Cipher
-
-The normalized plaintext is arranged into a rectangular matrix. A row permutation and a column permutation determine the order in which matrix elements are selected to produce the ciphertext.
-
-The implementation accepts two comma-separated integer permutations, separated by a semicolon:
-
-```text
-Row permutation;Column permutation
-```
-
-For example:
-
-```text
-3,1,2;2,4,1,3
-```
-
-This specifies a three-row, four-column matrix. The row permutation contains three entries, and the column permutation contains four entries.
-
-Permutation values are **1-based**. Each permutation must contain every integer from `1` through its length exactly once.
-
-The normalized plaintext length must equal:
-
-```text
-Number of rows × Number of columns
-```
-
-For example, the permutation above requires exactly 12 normalized letters. A message containing 18 normalized letters would require a different compatible matrix, such as a 3 × 6 matrix.
-
-The current implementation does not automatically pad messages or select matrix dimensions. Users must provide compatible permutations for the normalized plaintext length.
-
-Decryption reconstructs the original matrix arrangement by reversing the row and column reordering.
-
-**Purpose:** Demonstrates matrix-based transposition, permutation operations, and reversible character rearrangement.
-
-### 3. One-Time Pad (OTP)
-
-The implementation represents letters as values from 0 to 25. Encryption adds the plaintext and key values modulo 26:
-
-`C = (P + K) mod 26`
-
-Decryption subtracts the key modulo 26:
-
-`P = (C - K + 26) mod 26`
-
-The application generates a key matching the normalized message length. The generated key is displayed in the GUI and must be kept secret and never reused.
-
-**Purpose:** Demonstrates modular arithmetic and the theoretical properties and practical requirements of a one-time pad.
-
-## Input Handling
-
-Plaintext is normalized to uppercase letters A–Z. Spaces, punctuation, digits, and other characters are removed before encryption.
-
-For example:
-
-```text
-Input:      Attack, at dawn! 123
-Normalized: ATTACKATDAWN
-```
-
-Consequently, decryption restores the normalized plaintext rather than the original spacing, punctuation, digits, or letter case.
-
-### Double Transposition input requirements
-
-The Double Transposition panel accepts row and column permutations separated by a semicolon.
-
-Example for a 12-character normalized message:
-
-```text
-3,1,2;2,4,1,3
-```
-
-Example for an 18-character normalized message:
-
-```text
-3,1,2;2,4,1,6,3,5
-```
-
-Both permutations must be valid, and their lengths must multiply to the normalized message length.
-
-## Testing
-
-The automated test suite is intended to cover:
-
-- Simple substitution encryption/decryption round trip
-- Rejection of a substitution alphabet containing duplicate letters
+- Substitution encryption and decryption
+- Invalid substitution alphabets
 - Plaintext normalization
-- Double transposition encryption/decryption round trip
-- Handling of short transposition inputs
-- Rejection of invalid transposition permutations
-- OTP key generation and key length
-- OTP encryption/decryption round trip
-- Rejection of an OTP key with the wrong length
+- Double Transposition round trips and permutation validation
+- OTP key generation and key-length validation
+- OTP encryption and decryption
 
-Run the test suite using CTest as described in the build instructions.
+Test results should be verified against the current implementation before claiming that the entire suite passes.
 
-**Note:** Confirm that all tests pass against the current implementation before treating the test suite as fully validated.
+## 🛡️ Security Disclaimer
 
-## Security Limitations
+CipherLab is an **educational demonstration**, not a production cryptographic application.
 
-CipherLab is an educational demonstration, not a production cryptographic application.
+- Simple substitution is vulnerable to frequency analysis.
+- Double Transposition does not provide modern cryptographic security.
+- A One-Time Pad provides perfect secrecy only if its key is truly uniformly random, independent of the plaintext, secret, at least as long as the message, and never reused.
+- Generated OTP keys in this application should not be assumed to satisfy production-grade cryptographic requirements.
+- Execution timings are illustrative and are not rigorous cryptographic benchmarks.
 
-- **Simple substitution** is vulnerable to frequency analysis and other classical cryptanalysis techniques.
-- **Double transposition** is a classical cipher and does not provide modern cryptographic security.
-- **One-Time Pad** provides perfect secrecy only when its key is uniformly random, independent of the plaintext, kept secret, at least as long as the message, and never reused. The application's generated key should not be treated as a security certification.
-- **Input normalization** discards spaces, punctuation, digits, and letter case.
-- **Execution timings** are intended for demonstration and are not rigorous cryptographic benchmarks.
-
-Do not use this application to protect sensitive or real-world communications.
+**Do not use CipherLab to protect sensitive or real-world communications.**
