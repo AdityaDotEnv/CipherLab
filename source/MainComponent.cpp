@@ -1,4 +1,4 @@
-﻿#include "MainComponent.h"
+#include "MainComponent.h"
 
 #include <chrono>
 #include <sstream>
@@ -89,12 +89,12 @@ MainComponent::MainComponent()
     addAndMakeVisible(statusLabel);
 
     configurePanel(substitutionPanel, "1. Simple Substitution", "Alphabet permutation", "QWERTYUIOPASDFGHJKLZXCVBNM");
-    configurePanel(transpositionPanel, "2. Double Transposition", "Column keys (Aâ€“Z)", "ZEBRA,CIPHER");
+    configurePanel(transpositionPanel, "2. Double Transposition", "Row permutation; column permutation", "3,1,2;2,4,1,3");
     configurePanel(otpPanel, "3. One-Time Pad", "Key (generated per message)", "");
 
     substitutionPanel.keyEditor.setReadOnly(false);
     substitutionPanel.keyEditor.setTooltip("Exactly 26 unique letters: the cipher alphabet for A through Z.");
-    transpositionPanel.keyEditor.setTooltip("Two comma-separated keywords, for example ZEBRA,CIPHER.");
+    transpositionPanel.keyEditor.setTooltip("Enter row and column permutations separated by a semicolon. Example: 3,1,2;2,4,1,3. Plaintext length must equal rows x columns.");
     otpPanel.keyEditor.setReadOnly(true);
     otpPanel.keyEditor.setText("Generated automatically", juce::dontSendNotification);
 
@@ -221,7 +221,7 @@ void MainComponent::encryptAll()
     try
     {
         const auto substitutionKey = toStd(substitutionPanel.keyEditor.getText());
-        const auto transpositionKeys = toStd(transpositionPanel.keyEditor.getText());
+        const auto transpositionPermutations = toStd(transpositionPanel.keyEditor.getText());
 
         auto start = std::chrono::steady_clock::now();
         substitutionResult.ciphertext = substitution.encrypt(normalized, substitutionKey);
@@ -231,19 +231,22 @@ void MainComponent::encryptAll()
         substitutionResult.roundTripPassed =
             substitution.decrypt(substitutionResult.ciphertext, substitutionKey) == normalized;
 
-        const auto comma = transpositionKeys.find(',');
-        if (comma == std::string::npos || transpositionKeys.find(',', comma + 1) != std::string::npos)
-            throw std::invalid_argument("Double transposition needs exactly two comma-separated keys.");
+        const auto separator = transpositionPermutations.find(';');
+        if (separator == std::string::npos
+            || transpositionPermutations.find(';', separator + 1) != std::string::npos)
+            throw std::invalid_argument("Enter row and column permutations separated by one semicolon.");
 
-        const auto key1 = transpositionKeys.substr(0, comma);
-        const auto key2 = transpositionKeys.substr(comma + 1);
+        const auto rowPermutation = transpositionPermutations.substr(0, separator);
+        const auto columnPermutation = transpositionPermutations.substr(separator + 1);
         start = std::chrono::steady_clock::now();
-        transpositionResult.ciphertext = transposition.encrypt(normalized, key1, key2);
+        transpositionResult.ciphertext =
+            transposition.encrypt(normalized, rowPermutation, columnPermutation);
         end = std::chrono::steady_clock::now();
         transpositionResult.encryptionMicroseconds =
             std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
         transpositionResult.roundTripPassed =
-            transposition.decrypt(transpositionResult.ciphertext, key1, key2) == normalized;
+            transposition.decrypt(transpositionResult.ciphertext,
+                                  rowPermutation, columnPermutation) == normalized;
 
         start = std::chrono::steady_clock::now();
         otpResult.key = otp.generateKey(normalized.size());
@@ -253,10 +256,36 @@ void MainComponent::encryptAll()
             std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
         otpResult.roundTripPassed = otp.decrypt(otpResult.ciphertext, otpResult.key) == normalized;
 
-        substitutionPanel.statsLabel.setText(statText(substitutionResult), juce::dontSendNotification);
-        transpositionPanel.statsLabel.setText(statText(transpositionResult), juce::dontSendNotification);
-        otpPanel.statsLabel.setText(statText(otpResult), juce::dontSendNotification);
-        otpPanel.keyEditor.setText(toJuice(otpResult.key), juce::dontSendNotification);
+        
+        substitutionPanel.outputEditor.setText(
+            toJuice(substitutionResult.ciphertext),
+            juce::dontSendNotification
+        );
+
+        transpositionPanel.outputEditor.setText(
+            toJuice(transpositionResult.ciphertext),
+            juce::dontSendNotification
+        );
+
+        otpPanel.outputEditor.setText(
+            toJuice(otpResult.ciphertext),
+            juce::dontSendNotification
+        );
+
+        substitutionPanel.statsLabel.setText(
+            statText(substitutionResult), juce::dontSendNotification
+        );
+        transpositionPanel.statsLabel.setText(
+            statText(transpositionResult), juce::dontSendNotification
+        );
+        otpPanel.statsLabel.setText(
+            statText(otpResult), juce::dontSendNotification
+        );
+
+        otpPanel.keyEditor.setText(
+            toJuice(otpResult.key), juce::dontSendNotification
+        );
+
         substitutionPanel.decryptedEditor.clear();
         transpositionPanel.decryptedEditor.clear();
         otpPanel.decryptedEditor.clear();
@@ -283,12 +312,14 @@ void MainComponent::decryptPanel(int panelIndex)
         }
         else if (panelIndex == 1)
         {
-            const auto keys = toStd(transpositionPanel.keyEditor.getText());
-            const auto comma = keys.find(',');
-            if (comma == std::string::npos || keys.find(',', comma + 1) != std::string::npos)
-                throw std::invalid_argument("Use exactly two comma-separated transposition keys.");
+            const auto permutations = toStd(transpositionPanel.keyEditor.getText());
+            const auto separator = permutations.find(';');
+            if (separator == std::string::npos
+                || permutations.find(';', separator + 1) != std::string::npos)
+                throw std::invalid_argument("Enter row and column permutations separated by one semicolon.");
             decrypted = transposition.decrypt(transpositionResult.ciphertext,
-                                              keys.substr(0, comma), keys.substr(comma + 1));
+                                              permutations.substr(0, separator),
+                                              permutations.substr(separator + 1));
             transpositionPanel.decryptedEditor.setText(toJuice(decrypted), juce::dontSendNotification);
         }
         else
